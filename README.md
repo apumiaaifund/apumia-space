@@ -1,5 +1,8 @@
 # apumia-space
 
+[![CI Verification](https://github.com/apumiaaifund/apumia-space/actions/workflows/ci.yml/badge.svg)](https://github.com/apumiaaifund/apumia-space/actions/workflows/ci.yml)
+
+
 ---
 
 ### 🛡️ Верификация качества и безопасности (Apumia DevSecOps Gate)
