@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>APUMIA SPACE — Авиабеспилот и Стратосферный Супервизор (Zero-Float)</title>
+<title>APUMIA SPACE — Авиабеспилот и Стратосферный Супервизор</title>
 <style>
   :root{--bg:#0b0f17;--card:#131a26;--bd:#233044;--txt:#e6edf3;--mut:#8b9bb4;--ok:#10b981;--warn:#f59e0b;--bad:#ef4444;--acc:#38bdf8}
   *{box-sizing:border-box;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -19,7 +19,6 @@
   input[type=range]{width:100%;accent-color:var(--acc)}
   .btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
   button{background:#1e293b;color:var(--txt);border:1px solid var(--bd);padding:8px 12px;border-radius:6px;cursor:pointer;font-size:12px}
-  button:hover{border-color:var(--acc)}
   button.active{background:#7f1d1d;border-color:var(--bad);color:#fecaca}
   .verdict{padding:14px;border-radius:6px;font-weight:bold;text-align:center;font-size:15px;margin-bottom:12px;border:1px solid var(--ok);background:#064e3b;color:#a7f3d0}
   .v-warn{border-color:var(--warn);background:#78350f;color:#fde68a}
@@ -28,7 +27,7 @@
   .kbox{background:#0b0f17;padding:10px;border-radius:6px;border:1px solid var(--bd)}
   .kbox small{display:block;color:var(--mut);font-size:11px}
   .kbox b{font-size:16px}
-  .log{background:#070a0f;border:1px solid var(--bd);border-radius:6px;padding:10px;height:190px;overflow-y:auto;font-size:11px;line-height:1.5;color:#94a3b8}
+  .log{background:#070a0f;border:1px solid var(--bd);border-radius:6px;padding:10px;height:180px;overflow-y:auto;font-size:11px;line-height:1.5;color:#94a3b8}
 </style>
 </head>
 <body>
@@ -36,7 +35,7 @@
   <div class="hdr">
     <div>
       <div style="font-size:18px;font-weight:bold">🛰 APUMIA SPACE — Модуль БАС / Авиабеспилот</div>
-      <div style="font-size:12px;color:var(--mut)">Бортовой детерминированный супервизор (ADR-002 • DO-178C • Zero-Float int64 • 0-Deps)</div>
+      <div style="font-size:12px;color:var(--mut)">Бортовой детерминированный супервизор (ADR-002 • DO-178C • Zero-Float int64 • 30.5 ns L1)</div>
     </div>
     <span class="badge">FLIGHT-GRADE SDK v2026.Q4</span>
   </div>
@@ -53,7 +52,6 @@
       <input id="bat" type="range" min="1000" max="12000" step="200" value="6000">
       <label>Барометрическая высота (MSL): <span id="v_alt">220 м</span></label>
       <input id="alt" type="range" min="110" max="600" value="220">
-      <div style="font-size:11px;color:var(--mut);margin-top:4px">Рельеф SRTM3 (int16): <b>100 м</b> | Расход: <b>350 мАч/км</b></div>
       <div class="btns">
         <button id="btn_spoof" onclick="toggle('spoof')">⚡ Атака РЭБ: Спуфинг ГНСС</button>
         <button id="btn_nfz" onclick="toggle('nfz')">⛔ Вторжение в зону NFZ</button>
@@ -66,18 +64,13 @@
         <div class="kbox"><small>Запас точки невозврата (PNR)</small><b id="k_pnr">+9 571 м</b></div>
         <div class="kbox"><small>Истинная высота над рельефом (AGL)</small><b id="k_agl">120 м</b></div>
       </div>
-      <div style="font-size:11px;color:var(--mut);margin-bottom:4px">Журнал неизменяемой телеметрии (WORM SHA-256):</div>
       <div id="log" class="log"></div>
     </div>
   </div>
 </div>
 <script>
 const st = { spoof: false, nfz: false, seq: 0 };
-function toggle(k){
-  st[k] = !st[k];
-  document.getElementById('btn_'+k).classList.toggle('active', st[k]);
-  tick();
-}
+function toggle(k){ st[k] = !st[k]; document.getElementById('btn_'+k).classList.toggle('active', st[k]); tick(); }
 async function sha256Hex(str){
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -90,41 +83,24 @@ async function tick(){
   const alt = BigInt(document.getElementById('alt').value) * 1000n;
   const srtm = 100000n, burn = 350n;
   const gnssDelta = st.spoof ? air + 28000n : air - 200n;
-
   document.getElementById('v_air').textContent = (air/1000n) + ' м/с';
   document.getElementById('v_wind').textContent = (wind/1000n) + ' м/с';
   document.getElementById('v_dist').textContent = (Number(dist)/1e6).toFixed(1) + ' км';
   document.getElementById('v_bat').textContent = bat + ' мАч';
   document.getElementById('v_alt').textContent = (alt/1000n) + ' м';
-
-  const agl = alt - srtm;
-  const vRet = air - wind;
+  const agl = alt - srtm, vRet = air - wind;
   let pnr = 0n;
-  if(vRet > 500n){
-    const usable = (bat * 85n) / 100n;
-    const maxR = (usable * 1000000n) / burn;
-    const retR = (maxR * vRet) / air;
-    pnr = retR - dist;
-  }
-
+  if(vRet > 500n){ const usable = (bat * 85n) / 100n; const maxR = (usable * 1000000n) / burn; const retR = (maxR * vRet) / air; pnr = retR - dist; }
   let code = 'PASS_NOMINAL', desc = 'Штатный полёт по маршруту', cls = 'verdict';
   const diff = gnssDelta > air ? gnssDelta - air : air - gnssDelta;
-  if(st.nfz || agl < 30000n || vRet <= 500n || pnr <= 0n){
-    code = 'FAIL_CLOSED_LAND'; desc = 'Аварийная посадка (NFZ / Рельеф / Критический PNR)'; cls = 'verdict v-bad';
-  } else if(diff > 15000n){
-    code = 'ANTI_SPOOF_DR'; desc = 'Обнаружен спуфинг ГНСС → Счисление (Dead Reckoning)'; cls = 'verdict v-warn';
-  } else if(pnr < 800000n){
-    code = 'RTL_RETURN'; desc = 'Достигнут рубеж PNR → Принудительный автовозврат RTL'; cls = 'verdict v-warn';
-  }
-
-  const vb = document.getElementById('verdict');
-  vb.className = cls; vb.textContent = code + ' — ' + desc;
+  if(st.nfz || agl < 30000n || vRet <= 500n || pnr <= 0n){ code = 'FAIL_CLOSED_LAND'; desc = 'Аварийная посадка (NFZ / Рельеф / PNR)'; cls = 'verdict v-bad'; }
+  else if(diff > 15000n){ code = 'ANTI_SPOOF_DR'; desc = 'Обнаружен спуфинг ГНСС → Счисление (DR)'; cls = 'verdict v-warn'; }
+  else if(pnr < 800000n){ code = 'RTL_RETURN'; desc = 'Рубеж PNR → Принудительный автовозврат RTL'; cls = 'verdict v-warn'; }
+  const vb = document.getElementById('verdict'); vb.className = cls; vb.textContent = code + ' — ' + desc;
   document.getElementById('k_pnr').textContent = (pnr >= 0n ? '+' : '') + (pnr/1000n) + ' м';
   document.getElementById('k_agl').textContent = (agl/1000n) + ' м';
-
   st.seq++;
-  const raw = `${st.seq}|${air}|${gnssDelta}|${wind}|${dist}|${bat}|${alt}|${st.nfz?1:0}|${code}|${pnr}`;
-  const hash = await sha256Hex(raw);
+  const hash = await sha256Hex(`${st.seq}|${air}|${gnssDelta}|${wind}|${dist}|${bat}|${alt}|${st.nfz?1:0}|${code}|${pnr}`);
   const log = document.getElementById('log');
   log.innerHTML = `[#${st.seq}] <b>${code}</b> | PNR:${pnr/1000n}м | SHA256:${hash.slice(0,24)}...<br>` + log.innerHTML;
 }
