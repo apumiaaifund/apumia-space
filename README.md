@@ -4,18 +4,6 @@
 
 **Production-grade safety guardrails, cryptographic audit trails, and deterministic verification kernels for autonomous AI agents and mission-critical systems.**
 
-
----
-
-### 🚀 Что мы можем реализовать для партнёров на основе этого решения (Ниши и сценарии)
-
-- **БАС и робототехника:** демонстрационный стенд бортового предохранителя на `RISC-V` / `ARM Cortex-M` (`#![no_std]`).
-- **АСУ ТП и энергетика (КИИ):** проверка реакции 4-канального FDIR на термический разгон и залипание датчиков.
-- **Финтех и High-Load:** интерактивный показ сжатия каскадных сбоев API (`Delta Shrinking`).
-
-> **Формат сотрудничества:** запуск пилотного стенда (PoC) за 2–4 недели, лицензирование модуля (On-Premise) или кастомная интеграция под стек заказчика.  
-> 📬 **Запросить демонстрацию и расчёт пилота:** [apumiaaifund@gmail.com](mailto:apumiaaifund@gmail.com)
-
 ---
 
 ### 🚀 Enterprise & Developer Solutions
